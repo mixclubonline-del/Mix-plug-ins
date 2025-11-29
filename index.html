@@ -1,0 +1,363 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MixxClub Plugin Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-deep-space: #0d1117;
+        --grid-color: rgba(0, 255, 255, 0.05);
+        --scanline-color: rgba(0, 0, 0, 0.3);
+        --glow-cyan: #00ffff;
+        --glow-pink: #f472b6;
+        --border-color: rgba(100, 200, 255, 0.2);
+        --border-highlight: rgba(150, 220, 255, 0.5);
+      }
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--bg-deep-space);
+        cursor: default; /* Ensure cursor resets after dragging/resizing */
+      }
+      .font-orbitron {
+        font-family: 'Orbitron', sans-serif;
+      }
+      
+      /* Custom Scrollbar Styling */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px; /* Width for vertical scrollbar */
+        height: 8px; /* Height for horizontal scrollbar */
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 255, 0.2); /* Default subtle thumb */
+        border-radius: 4px;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        transition: background 0.3s ease; /* Smooth transition for hover */
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 255, 255, 0.5); /* More prominent on hover */
+      }
+
+      @keyframes pulse-waveform {
+        0%, 100% { transform: scale(1, 1); opacity: 1; }
+        50% { transform: scale(1.01, 0.97); opacity: 0.8; }
+      }
+      .waveform-animated path {
+        animation-name: pulse-waveform;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        transform-origin: center;
+      }
+      @keyframes humanize-drift {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(var(--humanize-x, 0px), var(--humanize-y, 0px)); }
+        50% { transform: translate(0, 0); }
+        75% { transform: translate(calc(var(--humanize-x, 0px) * -0.5), calc(var(--humanize-y, 0px) * -0.5)); }
+        100% { transform: translate(0, 0); }
+      }
+      .humanize-animated {
+        animation: humanize-drift 11s ease-in-out infinite;
+      }
+      @keyframes pulse-meter {
+        0%, 100% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.05); filter: brightness(1.5); }
+      }
+      .meter-animated {
+        animation: pulse-meter infinite;
+      }
+      @keyframes light-sweep {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      .group:hover .light-sweep-effect {
+        opacity: 1;
+        animation: light-sweep 1s ease-in-out forwards;
+      }
+       @keyframes energy-pulse {
+        0%, 100% { stroke-dashoffset: 1000; }
+        50% { stroke-dashoffset: 0; }
+      }
+      @keyframes spectral-dance {
+        0%, 100% { transform: scaleY(var(--end-scale, 0.1)); }
+        50% { transform: scaleY(1); }
+      }
+      @keyframes knob-value-flash {
+        0%, 100% { 
+          filter: brightness(1) drop-shadow(0 0 3px var(--glow-cyan));
+          transform: scale(1);
+        }
+        50% { 
+          filter: brightness(3) drop-shadow(0 0 8px var(--glow-cyan));
+          transform: scale(1.05);
+        }
+      }
+      .knob-value-changed {
+        animation: knob-value-flash 0.3s ease-out;
+        transform-origin: center;
+      }
+       @keyframes slider-puck-flash {
+        0%, 100% { 
+          transform: translate(-50%, -50%) scale(1); 
+          filter: brightness(1); 
+        }
+        50% { 
+          transform: translate(-50%, -50%) scale(1.25); 
+          filter: brightness(2); 
+        }
+      }
+      .slider-value-changed {
+        animation: slider-puck-flash 0.3s ease-out;
+      }
+      @keyframes midi-learn-pulse {
+        0%, 100% { 
+          transform: scale(1); 
+          box-shadow: 0 0 0 0 rgba(244, 114, 182, 0.7);
+          background-color: rgba(244, 114, 182, 0.7);
+        }
+        50% { 
+          transform: scale(1.1); 
+          box-shadow: 0 0 5px 10px rgba(244, 114, 182, 0);
+          background-color: rgba(244, 114, 182, 1);
+        }
+      }
+      .midi-learn-active {
+        animation: midi-learn-pulse 1.5s infinite;
+      }
+      /* Halo Schematic Animations */
+      @keyframes dash {
+        to { stroke-dashoffset: -15; }
+      }
+       @keyframes pulse-node-dynamic {
+            0%, 100% {
+              transform: scale(var(--node-scale, 1));
+              opacity: var(--node-opacity, 0.8);
+              filter: brightness(var(--node-brightness, 1));
+            }
+            50% {
+              transform: scale(calc(var(--node-scale, 1) * 1.1));
+              opacity: calc(var(--node-opacity, 0.8) * 1.2);
+              filter: brightness(calc(var(--node-brightness, 1) * 1.5));
+            }
+          }
+      @keyframes ai-context-glow {
+        0%, 100% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); }
+      }
+      @keyframes style-preset-flash {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(2.5); }
+      }
+      @keyframes particle-fade-out {
+        0% { opacity: 1; transform: scale(0); }
+        100% { opacity: 0; transform: scale(1); }
+      }
+      @keyframes sparkle-animation {
+        0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+        50% { opacity: 1; transform: scale(1) rotate(180deg); }
+      }
+
+      /* Living Rack Mini-Visualizer Animations REFINED */
+      @keyframes mini-tune-snap-refined {
+        0%, 40% { d: path('M 0 16 Q 10 22, 20 16 T 40 16'); }
+        60%, 100% { d: path('M 0 12 Q 10 12, 20 12 T 40 12'); }
+      }
+      @keyframes mini-drive-saturate {
+        0%, 100% { d: path('M 0 12 Q 10 4, 20 12 T 40 12'); }
+        50% { d: path('M 0 12 L 8 12 L 8 4 L 12 4 L 12 12 L 20 12 Q 20 4, 28 12 L 32 12 L 32 4 L 36 4 L 36 12 L 40 12'); }
+      }
+      @keyframes mini-verb-decay {
+        0% { opacity: 1; clip-path: polygon(0 0, 15% 0, 15% 100%, 0 100%); }
+        100% { opacity: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+      }
+      @keyframes mini-polish-shimmer {
+          0%, 100% { transform: scaleY(0.5); filter: brightness(1); }
+          50% { transform: scaleY(1); filter: brightness(2); }
+      }
+      @keyframes mini-glue-compress-refined {
+        0%, 100% { d: path('M 0 18 Q 10 2, 20 10 T 40 18'); }
+        50% { d: path('M 0 18 Q 10 12, 20 14 T 40 18'); }
+      }
+       @keyframes mini-eq-boost-refined {
+        0%, 100% { d: path('M 0 12 Q 10 12, 20 12 T 40 12'); }
+        50% { d: path('M 0 12 Q 10 12, 20 4 T 40 12'); }
+      }
+      @keyframes mini-delay-repeats-refined {
+        0%, 100% { opacity: 0; transform: translateX(var(--x-pos)) scaleX(var(--scale)); }
+        20% { opacity: 1; }
+      }
+      @keyframes mini-aura-widen-refined {
+        0%, 100% { d: path('M 20 4 V 20'); stroke-width: 1.5; }
+        50% { d: path('M 10 4 V 20 M 30 4 V 20'); stroke-width: 1; }
+      }
+
+      @keyframes mini-limiter-gr-flash {
+        0%, 100% { opacity: 0; }
+        10%, 40% { opacity: 1; }
+      }
+      @keyframes mini-motion-wave-pan {
+        from { transform: translateX(-50%); }
+        to { transform: translateX(0); }
+      }
+      @keyframes mini-soul-flow {
+        0% { transform: translate(var(--x1), var(--y1)); }
+        100% { transform: translate(var(--x2), var(--y2)); opacity: 0; }
+      }
+      @keyframes glue-wobble {
+        0%, 100% { transform: scale(1.0, 1.0); }
+        50% { transform: scale(1.02, 0.98); }
+      }
+      @keyframes mini-morph-crossfade {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+      }
+      @keyframes mini-ceiling-spark {
+        0%, 100% { opacity: 0; transform: scaleX(0); }
+        50% { opacity: 1; transform: scaleX(1); }
+      }
+      @keyframes mini-brainwave-think {
+        from { stroke-dashoffset: 25; }
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes mini-brainstem-radiate {
+        from { transform: scale(0); opacity: 1; }
+        to { transform: scale(1.5); opacity: 0; }
+      }
+      @keyframes mini-router-flow {
+        to { stroke-dashoffset: -10; }
+      }
+      @keyframes mini-port-progress {
+        from { stroke-dashoffset: 32; }
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes mini-telemetry-draw {
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes mini-bot-blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+      
+      /* NEW MINI VISUALIZER ANIMATIONS */
+      @keyframes mini-spirit-rise {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(-100%); opacity: 0; }
+      }
+      @keyframes mini-lens-radiate {
+        from { stroke-dashoffset: 8; }
+        to { stroke-dashoffset: -8; }
+      }
+      @keyframes mini-eq-dance {
+        0%, 100% { transform: scaleY(0.1); }
+        50% { transform: scaleY(var(--end-scale, 1)); }
+      }
+       @keyframes mini-brainstem-pulse {
+        0%, 100% { transform: scale(0.9); opacity: 0.7; }
+        50% { transform: scale(1); opacity: 1; }
+      }
+      @keyframes mini-balance-vectorscope {
+        0% { rx: 6; ry: 3; transform: rotate(0deg); }
+        50% { rx: 4; ry: 5; transform: rotate(180deg); }
+        100% { rx: 6; ry: 3; transform: rotate(360deg); }
+      }
+      @keyframes mini-master-eq-shelf {
+        0%, 100% { d: path('M 0 16 C 10 16, 12 6, 20 6 S 30 18, 40 18'); }
+        50% { d: path('M 0 16 C 10 16, 12 8, 20 8 S 30 16, 40 16'); }
+      }
+
+      /* ENHANCED VISUALIZER ANIMATIONS */
+      @keyframes balance-lissajous-breathe {
+        0%, 100% { transform: scale(0.98); opacity: 0.9; }
+        50% { transform: scale(1.02); opacity: 1; }
+      }
+      @keyframes master-eq-grid-pulse {
+        0%, 100% { transform: scale(0.5); opacity: 0.1; }
+        50% { transform: scale(1.5); opacity: 0.3; }
+      }
+
+      /* Routing View */
+      @keyframes routing-dash {
+        to { stroke-dashoffset: -20; }
+      }
+      .routing-cable {
+        stroke-dasharray: 10;
+        animation: routing-dash 1s linear infinite;
+      }
+      
+      /* Halo Icon Animation */
+      @keyframes halo-pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+      .halo-icon-animated .halo-ring-1 {
+        animation: halo-pulse 4s infinite ease-in-out;
+        transform-origin: center;
+      }
+      .halo-icon-animated .halo-ring-2 {
+        animation: halo-pulse 4s infinite 0.5s ease-in-out;
+        transform-origin: center;
+      }
+
+      /* System Tier Visualizers */
+      @keyframes scanline {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(100%); }
+      }
+      .scanline-bg::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        pointer-events: none;
+        background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 51%);
+        background-size: 100% 4px;
+        animation: scanline 10s linear infinite;
+        opacity: 0.5;
+      }
+      @keyframes data-stream {
+          from { transform: translateY(100%); opacity: 1; }
+          to { transform: translateY(-100%); opacity: 0; }
+      }
+      @keyframes render-complete-flash {
+          0%, 100% { filter: brightness(1); }
+          50% { filter: brightness(3); }
+      }
+      /* Header Icon Pulse */
+      @keyframes pulse-icon {
+          0%, 100% { transform: scale(1); filter: brightness(1); }
+          50% { transform: scale(1.05); filter: brightness(1.5); }
+      }
+      .icon-pulse-animated {
+        animation: pulse-icon 1.5s infinite ease-in-out;
+      }
+      /* Routing Port Glow Pulse */
+      @keyframes port-glow-pulse {
+          0%, 100% { box-shadow: 0 0 0px var(--port-glow-color); }
+          50% { box-shadow: 0 0 8px var(--port-glow-color); }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.552.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
