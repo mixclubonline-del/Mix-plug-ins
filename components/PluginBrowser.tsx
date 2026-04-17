@@ -19,6 +19,7 @@ const tierCategoryMap: Record<string, string> = {
     neural: 'AI',
     master: 'Mastering',
     signature: 'Creative',
+    quantum: 'Quantum',
     system: 'Effects',
 };
 
@@ -27,6 +28,7 @@ const tierColorMap: Record<string, { text: string, border: string, bg: string }>
     neural: { text: 'text-pink-400', border: 'border-pink-400', bg: 'bg-pink-400' },
     master: { text: 'text-amber-400', border: 'border-amber-400', bg: 'bg-amber-400' },
     signature: { text: 'text-rose-400', border: 'border-rose-400', bg: 'bg-rose-400' },
+    quantum: { text: 'text-indigo-400', border: 'border-indigo-400', bg: 'bg-indigo-400' },
     system: { text: 'text-violet-400', border: 'border-violet-400', bg: 'bg-violet-400' },
 };
 

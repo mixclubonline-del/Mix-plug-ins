@@ -1,5 +1,4 @@
 
-
 import type { 
   Plugin, PluginStates, SpecificPluginSettingsMap,
   PluginSizes, PluginPositions
@@ -32,6 +31,12 @@ import { MixxMotion } from './components/plugins/MixxMotion';
 import { PrimeLens } from './components/plugins/PrimeLens';
 import { MixxBrainwave } from './components/plugins/MixxBrainwave';
 import { MixxSpirit } from './components/plugins/MixxSpirit';
+import { MixxNebula } from './components/plugins/MixxNebula';
+
+// --- QUANTUM TIER ---
+import { MixxTunnel } from './components/plugins/MixxTunnel';
+import { MixxEntangle } from './components/plugins/MixxEntangle';
+import { PrimeSuperposition } from './components/plugins/PrimeSuperposition';
 
 // --- SYSTEM TIER ---
 import { MixxAnalyzerPro } from './components/plugins/MixxAnalyzerPro';
@@ -40,10 +45,13 @@ import { MixxPort } from './components/plugins/MixxPort';
 import { TelemetryCollector } from './components/plugins/TelemetryCollector';
 import { PrimeBotConsole } from './components/plugins/PrimeBotConsole';
 
+// --- GENERIC/NEW ---
+import { GenericPlugin } from './components/plugins/GenericPlugin';
+
 
 export const PLUGIN_TIERS = {
   'Core Tier': {
-    'MixxTune': { id: "mixx-tune", tier: "core", parameters: ["retuneSpeed", "formant", "humanize", "mix", "emotiveLock"], lightingProfile: { hueStart: 210, hueEnd: 330, motion: "float" }, moodResponse: "Follows lyric sentiment and section changes; adjusts mood confidence.", name: 'Mixx Tune', description: 'AI vocal tuner and tone-former.', component: MixxTune, suggestedBy: 'Prime', canBeSidechainTarget: true },
+    'MixxTune': { id: "mixx-tune", tier: "core", parameters: ["retuneSpeed", "formant", "humanize", "mix", "emotiveLock", "gain"], lightingProfile: { hueStart: 210, hueEnd: 330, motion: "float" }, moodResponse: "Follows lyric sentiment and section changes; adjusts mood confidence.", name: 'Mixx Tune', description: 'AI vocal tuner and tone-former.', component: MixxTune, suggestedBy: 'Prime', canBeSidechainTarget: true },
     'MixxVerb': { id: "mixx-verb", tier: "core", parameters: ["size", "predelay", "mix"], lightingProfile: { hueStart: 180, hueEnd: 270, motion: "breathe" }, moodResponse: "Reacts to energy level; widens with intensity.", name: 'Mixx Verb', description: 'Adaptive reverb space engine.', component: MixxVerb },
     'MixxDelay': { id: "mixx-delay", tier: "core", parameters: ["time", "feedback", "mix", "throwIntuition"], lightingProfile: { hueStart: 300, hueEnd: 300, motion: "pulse" }, moodResponse: "Syncs to tempo; throws more during chorus.", name: 'Mixx Delay', description: 'Intelligent throw delay.', component: MixxDelay, suggestedBy: 'Prime' },
     'MixxDrive': { id: "mixx-drive", tier: "core", parameters: ["drive", "warmth", "mix", "color"], lightingProfile: { hueStart: 300, hueEnd: 30, motion: "burst" }, moodResponse: "Boosts saturation as RMS rises.", name: 'Mixx Drive', description: 'Harmonic saturator / color enhancer.', component: MixxDrive },
@@ -69,6 +77,13 @@ export const PLUGIN_TIERS = {
     'PrimeLens': { id: "prime-lens", tier: "signature", parameters: ["gain", "resolution", "colorMode"], lightingProfile: { hueStart: 0, hueEnd: 360, motion: "sweep" }, moodResponse: "Feeds visuals to MAE / Spline layers.", name: 'Prime Lens', description: 'Audio→Visual translator.', component: PrimeLens },
     'MixxBrainwave': { id: "mixx-brainwave", tier: "signature", parameters: ["seed", "variation", "intensity"], lightingProfile: { hueStart: 270, hueEnd: 270, motion: "flare" }, moodResponse: "Suggests melodic ideas; generates motion patterns.", name: 'Mixx Brainwave', description: 'Generative idea composer.', component: MixxBrainwave },
     'MixxSpirit': { id: "mixx-spirit", tier: "signature", parameters: ["sensitivity", "energyLink", "threshold"], lightingProfile: { hueStart: 0, hueEnd: 360, motion: "strobe" }, moodResponse: "Adjusts brightness by fan/chat sentiment.", name: 'Mixx Spirit', description: 'Live crowd response engine.', component: MixxSpirit },
+    'MixxNebula': { id: "mixx-nebula", tier: "signature", parameters: ["density", "drift", "color"], lightingProfile: { hueStart: 280, hueEnd: 320, motion: "fog" }, moodResponse: "Expands texture density in high energy.", name: 'Mixx Nebula', description: 'Spectral cloud generator.', component: MixxNebula },
+    'PrimeGlitch': { id: "prime-glitch", tier: "signature", parameters: ["fragment", "jitter", "rate"], lightingProfile: { hueStart: 0, hueEnd: 360, motion: "spark" }, moodResponse: "Increases chaos during build-ups.", name: 'Prime Glitch', description: 'Futuristic artifact generator.', component: GenericPlugin },
+  },
+  'Quantum Tier': {
+    'MixxEntangle': { id: "mixx-entangle", tier: "quantum", parameters: ["linkage", "uncertainty", "observation"], lightingProfile: { hueStart: 180, hueEnd: 220, motion: "orbit" }, moodResponse: "Links parameters across tracks.", name: 'Mixx Entangle', description: 'Quantum-linked EQ bands.', component: MixxEntangle, suggestedBy: 'Prime' },
+    'MixxTunnel': { id: "mixx-tunnel", tier: "quantum", parameters: ["length", "gravity", "horizon"], lightingProfile: { hueStart: 200, hueEnd: 260, motion: "suck" }, moodResponse: "Deepens reverb tail in dark moods.", name: 'Mixx Tunnel', description: 'Wormhole granular reverb.', component: MixxTunnel },
+    'PrimeSuperposition': { id: "prime-superposition", tier: "quantum", parameters: ["states", "collapse", "probability"], lightingProfile: { hueStart: 0, hueEnd: 0, motion: "ghost" }, moodResponse: "Collapses to single state on drop.", name: 'Prime Superposition', description: 'Multi-state parallel compressor.', component: PrimeSuperposition },
   },
   'System Tier': {
     'MixxAnalyzerPro': { id: "mixx-analyzer-pro", tier: "system", parameters: [], lightingProfile: { hueStart: 210, hueEnd: 300, motion: "bars" }, moodResponse: "Displays energy + frequency.", name: 'Mixx Analyzer Pro', description: 'Visual LUFS / spectrum monitor.', component: MixxAnalyzerPro },
@@ -98,8 +113,9 @@ export const HALO_SCHEMATIC_RINGS = [
   { name: 'Core Layer', radiusPercentage: 22, animationDuration: '120s', plugins: Object.keys(PLUGIN_TIERS['Core Tier']) as PluginKey[] },
   { name: 'Neural Layer', radiusPercentage: 38, animationDuration: '90s', plugins: Object.keys(PLUGIN_TIERS['Neural Tier']) as PluginKey[] },
   { name: 'Mastering Layer', radiusPercentage: 54, animationDuration: '180s', plugins: Object.keys(PLUGIN_TIERS['Master Tier']) as PluginKey[] },
-  { name: 'System Layer', radiusPercentage: 70, animationDuration: '240s', plugins: Object.keys(PLUGIN_TIERS['System Tier']) as PluginKey[] },
-  { name: 'Signature Halo', radiusPercentage: 86, animationDuration: '300s', plugins: Object.keys(PLUGIN_TIERS['Signature / Experimental Tier']) as PluginKey[] },
+  { name: 'Quantum Layer', radiusPercentage: 66, animationDuration: '150s', plugins: Object.keys(PLUGIN_TIERS['Quantum Tier']) as PluginKey[] },
+  { name: 'System Layer', radiusPercentage: 78, animationDuration: '240s', plugins: Object.keys(PLUGIN_TIERS['System Tier']) as PluginKey[] },
+  { name: 'Signature Halo', radiusPercentage: 90, animationDuration: '300s', plugins: Object.keys(PLUGIN_TIERS['Signature / Experimental Tier']) as PluginKey[] },
 ];
 
 export const INITIAL_PLUGIN_SIZES: PluginSizes = Object.keys(allPlugins).reduce((acc, key) => {
@@ -127,10 +143,10 @@ const baseDefaults = { mix: 100, output: 50 };
 
 export const INITIAL_PLUGIN_STATES: PluginStates = {
   // Core Tier
-  MixxTune: { ...baseDefaults, retuneSpeed: 50, formant: 50, humanize: 50, emotiveLock: false, sidechainActive: false },
+  MixxTune: { retuneSpeed: 50, formant: 50, humanize: 50, emotiveLock: false, sidechainActive: false, mix: 100, output: 50, gain: -12 },
   MixxVerb: { ...baseDefaults, size: 50, predelay: 20 },
   MixxDelay: { ...baseDefaults, time: 250, feedback: 45, throwIntuition: 50 },
-  MixxDrive: { ...baseDefaults, drive: 30, warmth: 50, color: 50 },
+  MixxDrive: { ...baseDefaults, drive: 50, warmth: 50, color: 50 },
   MixxGlue: { ...baseDefaults, threshold: -20, ratio: 4, release: 100, sidechainActive: false },
   // Neural Tier
   MixxAura: { ...baseDefaults, tone: 50, width: 50, shine: 50, moodLock: false },
@@ -150,6 +166,12 @@ export const INITIAL_PLUGIN_STATES: PluginStates = {
   PrimeLens: { ...baseDefaults, gain: 50, resolution: 50, colorMode: 'spectral' },
   MixxBrainwave: { ...baseDefaults, seed: 50, variation: 50, intensity: 50 },
   MixxSpirit: { ...baseDefaults, sensitivity: 50, energyLink: 50, threshold: 80 },
+  MixxNebula: { ...baseDefaults, density: 50, drift: 50, color: 50 },
+  PrimeGlitch: { ...baseDefaults, fragment: 50, jitter: 50, rate: 50 },
+  // Quantum Tier
+  MixxEntangle: { ...baseDefaults, linkage: 50, uncertainty: 50, observation: 50 },
+  MixxTunnel: { ...baseDefaults, length: 50, gravity: 50, horizon: 50 },
+  PrimeSuperposition: { ...baseDefaults, states: 50, collapse: 50, probability: 50 },
   // System Tier
   MixxAnalyzerPro: { ...baseDefaults },
   PrimeRouter: { ...baseDefaults },

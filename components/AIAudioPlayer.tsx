@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI, Modality } from "@google/genai";
-import { MusicIcon, PlayIcon, PauseIcon, LoaderIcon, MicIcon, MicOffIcon } from './shared/Icons';
+import { MusicIcon, PlayIcon, PauseIcon, LoaderIcon } from './shared/Icons';
 
 interface AIAudioPlayerProps {
   isPlaying: boolean;
@@ -9,11 +9,9 @@ interface AIAudioPlayerProps {
   onPlay: () => void;
   onPause: () => void;
   onStop: () => void;
-  toggleMic: () => void;
-  isMicActive: boolean;
 }
 
-export const AIAudioPlayer: React.FC<AIAudioPlayerProps> = ({ isPlaying, onAudioReady, onPlay, onPause, onStop, toggleMic, isMicActive }) => {
+export const AIAudioPlayer: React.FC<AIAudioPlayerProps> = ({ isPlaying, onAudioReady, onPlay, onPause, onStop }) => {
   const [prompt, setPrompt] = useState('System online. Ready for input.');
   const [isLoading, setIsLoading] = useState(false);
   const [showInput, setShowInput] = useState(false);
@@ -98,14 +96,6 @@ export const AIAudioPlayer: React.FC<AIAudioPlayerProps> = ({ isPlaying, onAudio
         )}
 
         <div className="w-px h-4 bg-white/10 mx-1" />
-
-        <button 
-            onClick={toggleMic}
-            className={`p-1.5 rounded-full transition-all group ${isMicActive ? 'text-red-500 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
-            title={isMicActive ? "Disable Microphone" : "Enable Microphone Input"}
-        >
-            {isMicActive ? <MicOffIcon className="w-4 h-4" /> : <MicIcon className="w-4 h-4" />}
-        </button>
 
         <button 
             onClick={isPlaying ? onPause : onPlay}

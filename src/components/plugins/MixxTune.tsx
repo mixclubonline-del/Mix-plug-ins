@@ -5,7 +5,7 @@ import { Knob } from '../shared/Knob';
 import { MixxTuneSettings, PluginComponentProps, AudioSignal, GlobalSettings } from '../../types';
 import { PrimeBrainStub } from '../../lib/PrimeBrainStub';
 import { ToggleButton } from '../shared/ToggleButton';
-import { mapRange } from '../../lib/utils';
+import { mapRange, getMoodHue } from '../../lib/utils';
 import { VstBridge, VisualizerData as GenericVisualizerData } from '../../vst/VstBridge';
 import { useVstBridge } from '../../vst/useVstBridge';
 
@@ -28,7 +28,7 @@ class MixxTuneVstBridge extends VstBridge<MixxTuneSettings> {
         globalSettings: GlobalSettings,
         extraData?: Record<string, any>
     ): GenericVisualizerData {
-        const { retuneSpeed, formant, humanize, mix, emotiveLock, sidechainActive } = this.settings;
+        const { retuneSpeed, formant, humanize, mix, emotiveLock, sidechainActive, gain } = this.settings;
         const mood = extraData?.mood || 'Neutral';
 
         const animationSpeedMultiplier = mapRange(globalSettings.animationIntensity, 0, 100, 1.5, 0.5);
@@ -40,7 +40,14 @@ class MixxTuneVstBridge extends VstBridge<MixxTuneSettings> {
         // In emotiveLock, humanize effect is drastically reduced
         const normalizedHumanize = (humanize / 100) * (emotiveLock ? 0.1 : 1);
         const normalizedMix = mix / 100;
-        const audioLevel = audioSignal.level / 100;
+        
+        // Calculate audio level with input gain applied
+        // gain is in dB, so convert to linear scale factor: 10^(dB/20)
+        // However, audioSignal.level is already 0-100, so we just scale it.
+        // We'll clamp it to prevent visual glitches if it goes too high.
+        const gainFactor = Math.pow(10, gain / 20);
+        const rawAudioLevel = audioSignal.level * gainFactor;
+        const audioLevel = Math.min(150, rawAudioLevel) / 100; // Allow some headroom over 100 before hard clamp for visualizer
 
         // --- Waveform Calculation ---
         const inputWavePoints: {x: number, y: number}[] = [];
@@ -51,7 +58,8 @@ class MixxTuneVstBridge extends VstBridge<MixxTuneSettings> {
             const formantShift = (formant - 50) / 100 * noteRange * 0.2;
             
             // Add a subtle, slow-moving wave to the input signal to make it feel more alive
-            const baseWave = audioSignal.waveform[index] * 2 - 1;
+            // Scale waveform by gainFactor as well
+            const baseWave = (audioSignal.waveform[index] * 2 - 1) * gainFactor;
             const timeWave = Math.sin(x / (50 + normalizedHumanize * 50) + audioSignal.time * 3) * 0.1 * (1 - normalizedMix);
 
             return targetNoteY + formantShift + (baseWave + timeWave) * noteRange * 0.8;
@@ -65,7 +73,7 @@ class MixxTuneVstBridge extends VstBridge<MixxTuneSettings> {
             // NEW: Add sidechain effect
             if (sidechainActive) {
                 // Simulate sidechain input "pushing" the pitch line based on main audio level
-                const sidechainPush = audioSignal.level * 0.2 * Math.sin(audioSignal.time * 8 + x / 100);
+                const sidechainPush = audioLevel * 20 * Math.sin(audioSignal.time * 8 + x / 100);
                 energyWave += sidechainPush;
             }
 
@@ -140,14 +148,11 @@ class MixxTuneVstBridge extends VstBridge<MixxTuneSettings> {
         const emotiveLockGlowOpacity = 0.15 + pulse * 0.1;
 
         // Dynamic Hue based on Mood
-        const moodHueMap: Record<string, number> = {
-            'Warm': 30, 'Bright': 190, 'Dark': 270, 'Energetic': 320, 'Neutral': 180 
-        };
-        const targetHue = moodHueMap[mood as string] || 180;
+        const targetHue = getMoodHue(mood as import('../../types').Mood);
 
         let correctedLineColor: string;
         if (sidechainActive) {
-            const sidechainPulseLightness = 65 + (audioSignal.level/100) * 20; 
+            const sidechainPulseLightness = 65 + (audioLevel * 100 / 100) * 20; 
             correctedLineColor = `hsla(${targetHue}, 90%, ${sidechainPulseLightness}%, ${0.5 + 0.5 * normalizedMix})`;
         } else if (emotiveLock) {
             correctedLineColor = `hsla(315, 90%, ${emotiveLockLightness}%, ${0.5 + 0.5 * normalizedMix})`;
@@ -336,7 +341,7 @@ export const MixxTune: React.FC<PluginComponentProps<MixxTuneSettings>> = ({
     isDragging, isResizing, name, description, pluginState, setPluginState, isLearning, onMidiLearn, audioSignal, onClose, globalSettings, isSidechainTarget, sessionContext
 }) => {
     const { 
-        retuneSpeed, formant, humanize, emotiveLock, mix, output, sidechainActive
+        retuneSpeed, formant, humanize, emotiveLock, mix, output, sidechainActive, gain
     } = pluginState;
     
     const { visualizerData, setCanvasSize } = useVstBridge(
@@ -394,6 +399,7 @@ export const MixxTune: React.FC<PluginComponentProps<MixxTuneSettings>> = ({
                     <Knob label="Retune Speed" value={retuneSpeed} setValue={(val) => handleValueChange('retuneSpeed', val)} paramName="retuneSpeed" min={0} max={100} step={1} isLearning={isLearning('retuneSpeed')} onMidiLearn={onMidiLearn} />
                     <Knob label="Formant" value={formant} setValue={(val) => handleValueChange('formant', val)} paramName="formant" min={0} max={100} step={1} isLearning={isLearning('formant')} onMidiLearn={onMidiLearn} />
                     <Knob label="Humanize" value={humanize} setValue={(val) => handleValueChange('humanize', val)} paramName="humanize" min={0} max={100} step={1} isLearning={isLearning('humanize')} onMidiLearn={onMidiLearn} />
+                    <Knob label="Input Gain" value={gain} setValue={(val) => handleValueChange('gain', val)} paramName="gain" min={-24} max={0} step={0.1} isLearning={isLearning('gain')} onMidiLearn={onMidiLearn} />
                     <Knob label="Mix" value={mix} setValue={(val) => handleValueChange('mix', val)} paramName="mix" isLearning={isLearning('mix')} onMidiLearn={onMidiLearn} />
                     <Knob label="Output" value={output} setValue={(val) => handleValueChange('output', val)} paramName="output" isLearning={isLearning('output')} onMidiLearn={onMidiLearn} />
                 </div>

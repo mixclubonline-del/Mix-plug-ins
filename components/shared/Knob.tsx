@@ -20,7 +20,7 @@ const MIN_ANGLE = -135;
 const MAX_ANGLE = 135;
 const ACTIVATION_THRESHOLD = 3; // pixels
 
-const PIXELS_PER_UNIT_NORMAL = 2; // 2 pixels of mouse movement for a 1-unit change without modifier keys.
+const PIXELS_PER_UNIT_NORMAL = 4; // 4 pixels of mouse movement for a 1-unit change without modifier keys.
 const FINE_TUNE_MULTIPLIER = 5;    // 5x finer with Shift
 const SUPER_FINE_TUNE_MULTIPLIER = 20; // 20x finer with Ctrl/Cmd
 

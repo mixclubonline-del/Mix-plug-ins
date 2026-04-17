@@ -14,9 +14,10 @@ import { PluginBrowser } from './components/PluginBrowser';
 import { SidePanel } from './components/SidePanel';
 import { PrimeBrainStub } from './lib/PrimeBrainStub';
 import { useSimulatedAudio } from './hooks/useSimulatedAudio';
-import { SettingsPanel } from './components/SettingsPanel'; // Import the new SettingsPanel
-import { mapRange } from './lib/utils'; // Import mapRange
-import { useGlobalSettings } from './hooks/useGlobalSettings'; // Import the new hook
+import { useUndoRedo } from './src/hooks/useUndoRedo';
+import { SettingsPanel } from './components/SettingsPanel'; 
+import { mapRange } from './lib/utils';
+import { useGlobalSettings } from './hooks/useGlobalSettings';
 import { AIAudioPlayer } from './components/AIAudioPlayer';
 import { AmbientBackground } from './components/shared/AmbientBackground';
 
@@ -24,7 +25,16 @@ const App: React.FC = () => {
   const [activePlugin, setActivePlugin] = useState<PluginKey | null>(null); 
   const [view, setView] = useState<'plugin' | 'halo'>('plugin');
   const [sessionContext, setSessionContext] = useState<SessionContext>({ mood: 'Neutral' });
-  const [pluginStates, setPluginStates] = useState<PluginStates>(INITIAL_PLUGIN_STATES); 
+  
+  const { 
+    state: pluginStates, 
+    setState: setPluginStates, 
+    undo: undoPluginStates, 
+    redo: redoPluginStates,
+    canUndo: canUndoPluginStates,
+    canRedo: canRedoPluginStates
+  } = useUndoRedo<PluginStates>(INITIAL_PLUGIN_STATES);
+
   const [pluginSizes, setPluginSizes] = useState<PluginSizes>(INITIAL_PLUGIN_SIZES);
   const [pluginPositions, setPluginPositions] = useState<PluginPositions>(INITIAL_PLUGIN_POSITIONS);
   const [activePluginZIndex, setActivePluginZIndex] = useState(10); 
@@ -96,7 +106,7 @@ const App: React.FC = () => {
         } as SpecificPluginSettingsMap[K]
       };
     });
-  }, []);
+  }, [setPluginStates]);
 
   const handleGlobalSettingsChange = useCallback((newSettings: Partial<GlobalSettings>) => {
       setGlobalSettings(newSettings); // This now uses the setter from the hook, which handles persistence
@@ -270,6 +280,13 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-2 p-2 rounded-full bg-black/30 backdrop-blur-md border border-white/20">
+                    <button onClick={undoPluginStates} disabled={!canUndoPluginStates} className="p-2 text-white/60 hover:text-white disabled:opacity-30" title="Undo">
+                        <span className="font-bold">↶</span>
+                    </button>
+                    <button onClick={redoPluginStates} disabled={!canRedoPluginStates} className="p-2 text-white/60 hover:text-white disabled:opacity-30" title="Redo">
+                        <span className="font-bold">↷</span>
+                    </button>
+                    <div className="w-px h-6 bg-white/20" />
                     <AIAudioPlayer 
                         isPlaying={isPlaying}
                         onAudioReady={handleAudioReady}

@@ -153,6 +153,34 @@ export interface MixxSpiritSettings extends BasePluginSettings {
   energyLink: number;
   threshold: number;
 }
+// New Signature Plugins
+export interface MixxNebulaSettings extends BasePluginSettings {
+    density: number;
+    drift: number;
+    color: number;
+}
+export interface PrimeGlitchSettings extends BasePluginSettings {
+    fragment: number;
+    jitter: number;
+    rate: number;
+}
+
+// --- QUANTUM TIER ---
+export interface MixxEntangleSettings extends BasePluginSettings {
+    linkage: number;
+    uncertainty: number;
+    observation: number;
+}
+export interface MixxTunnelSettings extends BasePluginSettings {
+    length: number;
+    gravity: number;
+    horizon: number;
+}
+export interface PrimeSuperpositionSettings extends BasePluginSettings {
+    states: number;
+    collapse: number;
+    probability: number;
+}
 
 // --- SYSTEM TIER ---
 export interface MixxAnalyzerProSettings extends BasePluginSettings {}
@@ -186,6 +214,11 @@ export interface SpecificPluginSettingsMap {
   'PrimeLens': PrimeLensSettings;
   'MixxBrainwave': MixxBrainwaveSettings;
   'MixxSpirit': MixxSpiritSettings;
+  'MixxNebula': MixxNebulaSettings;
+  'PrimeGlitch': PrimeGlitchSettings;
+  'MixxEntangle': MixxEntangleSettings;
+  'MixxTunnel': MixxTunnelSettings;
+  'PrimeSuperposition': PrimeSuperpositionSettings;
   'MixxAnalyzerPro': MixxAnalyzerProSettings;
   'PrimeRouter': PrimeRouterSettings;
   'MixxPort': MixxPortSettings;

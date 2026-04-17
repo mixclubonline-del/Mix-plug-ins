@@ -24,6 +24,7 @@ const tierColorMap: Record<TierName, string> = {
   'Neural Tier': 'border-pink-400',
   'Master Tier': 'border-amber-400',
   'Signature / Experimental Tier': 'border-rose-400',
+  'Quantum Tier': 'border-indigo-400',
   'System Tier': 'border-violet-400',
 };
 
@@ -32,6 +33,7 @@ const portColorMap: Record<TierName, string> = {
     'Neural Tier': 'var(--glow-pink)',
     'Master Tier': '#f59e0b',
     'Signature / Experimental Tier': '#f43f5e',
+    'Quantum Tier': '#818cf8',
     'System Tier': '#8b5cf6',
 };
 

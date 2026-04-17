@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { findPlugin, INITIAL_PLUGIN_SIZES, INITIAL_PLUGIN_POSITIONS, INITIAL_PLUGIN_STATES, PluginKey, TierName } from './constants'; 
-import { MixxClubLogo, HaloIcon, SaveIcon, SettingsIcon, LinkIcon, GridIcon, ResetIcon, LightbulbIcon } from './components/shared/Icons';
+import { MixxClubLogo, HaloIcon, SaveIcon, SettingsIcon, LinkIcon, GridIcon, ResetIcon, LightbulbIcon, UploadIcon } from './components/shared/Icons';
 import { HaloSchematic } from './components/HaloSchematic';
 import { SessionContext, PluginPositions, PluginSize, PluginSizes, PluginPosition, SpecificPluginSettingsMap, PluginStates, MidiMappingMap, PluginComponentProps, Preset, PanelType, SidechainLink, AudioSignal, GlobalSettings } from './types'; 
 import { ResizableContainer } from './components/shared/ResizableContainer';
@@ -30,9 +30,13 @@ const App: React.FC = () => {
   const [activePluginZIndex, setActivePluginZIndex] = useState(10); 
   const [activePanel, setActivePanel] = useState<PanelType>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false); // New state for file drag
   const transitionStartRef = useRef<number | null>(null);
 
-  const { audioSignal, isPlaying, loadAudio, play, pause, stopAndPlayDefault } = useSimulatedAudio();
+  const { 
+      audioSignal, isPlaying, loadAudio, play, pause, stopAndPlayDefault, 
+      handleFileDrop, toggleMic, isMicActive 
+  } = useSimulatedAudio();
 
   // Global Settings State using the new persistence hook
   const { globalSettings, setGlobalSettings } = useGlobalSettings();
@@ -51,6 +55,35 @@ const App: React.FC = () => {
   // Routing State
   const [sidechainLinks, setSidechainLinks] = useState<SidechainLink[]>([]);
   
+  // Drag and Drop Handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDraggingFile(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+      e.preventDefault();
+      // Only set false if leaving the window (relatedTarget is null)
+      if (!e.relatedTarget) {
+          setIsDraggingFile(false);
+      }
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDraggingFile(false);
+      
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          if (file.type.startsWith('audio/')) {
+              await handleFileDrop(file);
+              PrimeBrainStub.sendEvent('audio_file_dropped', { name: file.name });
+          } else {
+              alert("Please drop a valid audio file.");
+          }
+      }
+  }, [handleFileDrop]);
+
   const handleSelectPlugin = (pluginKey: PluginKey) => {
       setIsTransitioning(true);
       transitionStartRef.current = performance.now();
@@ -97,6 +130,32 @@ const App: React.FC = () => {
       };
     });
   }, []);
+
+  // Listen for AI commands via PrimeBrain
+  useEffect(() => {
+      const unsubPluginState = PrimeBrainStub.subscribe('update_plugin_state', (payload: any) => {
+          const { pluginId, changes } = payload;
+          if (pluginId && changes) {
+              handlePluginStateChange(pluginId as PluginKey, changes);
+              // If we change a plugin, optionally activate it so the user sees the change
+              if (activePlugin !== pluginId && payload.activate) {
+                  handleSelectPlugin(pluginId as PluginKey);
+              }
+          }
+      });
+      
+      const unsubGeneratePreset = PrimeBrainStub.subscribe('generate_preset', (payload: any) => {
+          const { name } = payload;
+          if (name) {
+              savePreset(name, pluginStates);
+          }
+      });
+      
+      return () => {
+          unsubPluginState();
+          unsubGeneratePreset();
+      };
+  }, [handlePluginStateChange, activePlugin, savePreset, pluginStates]);
 
   const handleGlobalSettingsChange = useCallback((newSettings: Partial<GlobalSettings>) => {
       setGlobalSettings(newSettings); // This now uses the setter from the hook, which handles persistence
@@ -217,7 +276,7 @@ const App: React.FC = () => {
     const ActivePluginComponent = pluginInfo.component as React.FC<PluginComponentProps<any>>;
     type CurrentPluginSettings = React.ComponentProps<typeof ActivePluginComponent>['pluginState'];
     
-    const pluginProps = {
+    const pluginProps = React.useMemo(() => ({
       name: pluginInfo.name,
       description: pluginInfo.description,
       sessionContext,
@@ -230,7 +289,7 @@ const App: React.FC = () => {
       audioSignal: audioSignal, // Pass the global audio signal here
       onClose: handleClosePlugin, // Pass the close handler to the plugin
       globalSettings: globalSettings, // Pass global settings to plugins
-    };
+    }), [pluginInfo.name, pluginInfo.description, sessionContext, setSessionContext, pluginStates, activePlugin, handlePluginStateChange, midiLearnTarget, handleMidiLearnStart, sidechainLinks, audioSignal, handleClosePlugin, globalSettings]);
 
     return (
        <ResizableContainer
@@ -240,10 +299,9 @@ const App: React.FC = () => {
         initialPosition={pluginPositions[activePlugin]}
         onResizeStop={(newSize) => setPluginSizes(prev => ({ ...prev, [activePlugin]: newSize }))}
         onDragStop={(newPosition) => setPluginPositions(prev => ({ ...prev, [activePlugin]: newPosition }))}
-        onInteractionStart={() => setActivePluginZIndex(50)}
-        onInteractionStop={() => setActivePluginZIndex(40)}
+        onInteractionStart={() => setTimeout(() => setActivePluginZIndex(50), 0)}
+        onInteractionStop={() => setTimeout(() => setActivePluginZIndex(40), 0)}
         zIndex={activePluginZIndex}
-        onAnimationComplete={() => setIsTransitioning(false)}
         globalSettings={globalSettings} // Pass global settings
       >
         <ActivePluginComponent {...pluginProps} />
@@ -252,8 +310,30 @@ const App: React.FC = () => {
   };
   
   return (
-    <div className="text-white min-h-screen bg-[#0d1117] relative overflow-hidden">
+    <div 
+        className="text-white min-h-screen bg-[#0d1117] relative overflow-hidden"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+    >
       <AmbientBackground mood={sessionContext.mood} intensity={globalSettings.animationIntensity} />
+      
+      {/* File Drop Overlay */}
+      <AnimatePresence>
+          {isDraggingFile && (
+              <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center border-4 border-dashed border-cyan-500/50 pointer-events-none"
+              >
+                  <UploadIcon className="w-24 h-24 text-cyan-400 mb-4 animate-bounce" />
+                  <h2 className="font-orbitron text-4xl font-bold text-white">DROP AUDIO TO LOAD</h2>
+                  <p className="text-cyan-300 mt-2">Analyze and process your track</p>
+              </motion.div>
+          )}
+      </AnimatePresence>
+
       <div className="relative flex flex-col h-screen z-10">
         <AnimatePresence>
           {activePlugin && (
@@ -276,6 +356,8 @@ const App: React.FC = () => {
                         onPlay={play}
                         onPause={pause}
                         onStop={stopAndPlayDefault}
+                        toggleMic={toggleMic}
+                        isMicActive={isMicActive}
                     />
                     <div className="w-px h-6 bg-white/20" />
                     <button onClick={handleClosePlugin} className="group p-2 text-white/60 hover:text-white transition-colors" title="Plugin Browser">

@@ -1,4 +1,6 @@
 
+import { Mood } from '../types';
+
 // A simple utility to conditionally join class names, similar to 'clsx' or 'classnames'
 export function cn(...inputs: (string | boolean | undefined | null)[]) {
   return inputs.filter(Boolean).join(' ');
@@ -22,3 +24,14 @@ export function mapRange(
 ): number {
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 }
+
+export const getMoodHue = (mood: Mood): number => {
+    const moodHueMap: Record<Mood, number> = {
+        'Neutral': 200,
+        'Warm': 30,
+        'Bright': 190,
+        'Dark': 260,
+        'Energetic': 330
+    };
+    return moodHueMap[mood] || 200;
+};
